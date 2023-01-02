@@ -45,7 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		PushNotification func(childComplexity int, input model.PushNotificationInput) int
+		PushNotificationBySegment func(childComplexity int, input model.PushNotificationInput) int
 	}
 
 	Query struct {
@@ -58,7 +58,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	PushNotification(ctx context.Context, input model.PushNotificationInput) (bool, error)
+	PushNotificationBySegment(ctx context.Context, input model.PushNotificationInput) (bool, error)
 }
 
 type executableSchema struct {
@@ -76,17 +76,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Mutation.pushNotification":
-		if e.complexity.Mutation.PushNotification == nil {
+	case "Mutation.pushNotificationBySegment":
+		if e.complexity.Mutation.PushNotificationBySegment == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_pushNotification_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_pushNotificationBySegment_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PushNotification(childComplexity, args["input"].(model.PushNotificationInput)), true
+		return e.complexity.Mutation.PushNotificationBySegment(childComplexity, args["input"].(model.PushNotificationInput)), true
 
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
@@ -111,7 +111,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputPushNotificationInput,
-		ec.unmarshalInputSubject,
 	)
 	first := true
 
@@ -172,11 +171,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../../schema/notification.graphql", Input: `input Subject {
-   username: String!
-}
-
-enum OnesignalSegment {
+	{Name: "../../schema/notification.graphql", Input: `enum OnesignalSegment {
     SUBSCRIBED_USERS
     ACTIVE_USERS
     INACTIVE_USERS
@@ -185,12 +180,11 @@ enum OnesignalSegment {
 input PushNotificationInput {
     title: String!
     content: String!
-    subject: Subject
     segments: [OnesignalSegment!]!
 }
 
 extend type Mutation {
-    pushNotification(input: PushNotificationInput!): Boolean!
+    pushNotificationBySegment(input: PushNotificationInput!): Boolean!
 }`, BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
 	scalar _Any
@@ -219,7 +213,7 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_pushNotification_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_pushNotificationBySegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.PushNotificationInput
@@ -287,8 +281,8 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Mutation_pushNotification(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_pushNotification(ctx, field)
+func (ec *executionContext) _Mutation_pushNotificationBySegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_pushNotificationBySegment(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -301,7 +295,7 @@ func (ec *executionContext) _Mutation_pushNotification(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushNotification(rctx, fc.Args["input"].(model.PushNotificationInput))
+		return ec.resolvers.Mutation().PushNotificationBySegment(rctx, fc.Args["input"].(model.PushNotificationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -318,7 +312,7 @@ func (ec *executionContext) _Mutation_pushNotification(ctx context.Context, fiel
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_pushNotification(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_pushNotificationBySegment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -335,7 +329,7 @@ func (ec *executionContext) fieldContext_Mutation_pushNotification(ctx context.C
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_pushNotification_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_pushNotificationBySegment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2340,7 +2334,7 @@ func (ec *executionContext) unmarshalInputPushNotificationInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "content", "subject", "segments"}
+	fieldsInOrder := [...]string{"title", "content", "segments"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -2363,47 +2357,11 @@ func (ec *executionContext) unmarshalInputPushNotificationInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
-		case "subject":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
-			it.Subject, err = ec.unmarshalOSubject2ᚖgithubᚗcomᚋatjhoendzᚋnotpushcationᚑserviceᚋinternalᚋmodelᚐSubject(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "segments":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segments"))
 			it.Segments, err = ec.unmarshalNOnesignalSegment2ᚕgithubᚗcomᚋatjhoendzᚋnotpushcationᚑserviceᚋinternalᚋmodelᚐOnesignalSegmentᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputSubject(ctx context.Context, obj interface{}) (model.Subject, error) {
-	var it model.Subject
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"username"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "username":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-			it.Username, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2440,10 +2398,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "pushNotification":
+		case "pushNotificationBySegment":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_pushNotification(ctx, field)
+				return ec._Mutation_pushNotificationBySegment(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -3302,14 +3260,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOSubject2ᚖgithubᚗcomᚋatjhoendzᚋnotpushcationᚑserviceᚋinternalᚋmodelᚐSubject(ctx context.Context, v interface{}) (*model.Subject, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputSubject(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

@@ -10,18 +10,12 @@ type (
 		Deliver(ctx context.Context, message *OnesignalPayload) error
 	}
 
-	// DataPayload :nodoc:
-	//DataPayload struct {
-	//	Username string `json:"username,omitempty"`
-	//}
-
 	// OnesignalPayload represents a onesignal notification payload
 	OnesignalPayload struct {
 		Headings         map[string]string `json:"headings"`
 		Contents         map[string]string `json:"contents"`
 		AppID            string            `json:"app_id"`
 		IncludedSegments []string          `json:"included_segments"`
-		//Data     DataPayload       `json:"data"`
 	}
 
 	// OnesignalSegment :nodoc:
@@ -45,5 +39,10 @@ func (s OnesignalSegment) GetString() string {
 		InactiveUsers:   "Inactive Users",
 	}
 
-	return mapSegment[s]
+	val, ok := mapSegment[s]
+	if !ok {
+		return mapSegment[SubscribedUsers]
+	}
+
+	return val
 }

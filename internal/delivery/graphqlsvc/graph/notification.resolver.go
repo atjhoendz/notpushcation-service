@@ -13,8 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// PushNotification is the resolver for the pushNotification field.
-func (r *mutationResolver) PushNotification(ctx context.Context, input model.PushNotificationInput) (bool, error) {
+// PushNotificationBySegment is the resolver for the pushNotificationBySegment field.
+func (r *mutationResolver) PushNotificationBySegment(ctx context.Context, input model.PushNotificationInput) (bool, error) {
 	err := r.MessageProcessorUsecase.ProcessNotificationMessage(ctx, input)
 	if err != nil {
 		log.WithFields(log.Fields{
