@@ -1,0 +1,20 @@
+input Subject {
+   username: String!
+}
+
+enum OnesignalSegment {
+    SUBSCRIBED_USERS
+    ACTIVE_USERS
+    INACTIVE_USERS
+}
+
+input PushNotificationInput {
+    title: String!
+    content: String!
+    subject: Subject
+    segments: [OnesignalSegment!]!
+}
+
+extend type Mutation {
+    pushNotification(input: PushNotificationInput!): Boolean!
+}

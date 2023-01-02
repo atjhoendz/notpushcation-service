@@ -1,0 +1,7 @@
+env: "development"
+ports:
+  http: "9090"
+enable_introspection: "true"
+onesignal:
+  api_key: ""
+  app_id: ""
