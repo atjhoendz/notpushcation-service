@@ -31,7 +31,6 @@ func TestMessageProcessorUsecase_ProcessNotificationMessage(t *testing.T) {
 	input := model.PushNotificationInput{
 		Title:   "ini judul notifikasi",
 		Content: "ini konten notifikasi",
-		Subject: &model.Subject{Username: "joko"},
 	}
 
 	onesignalPayload := &model.OnesignalPayload{

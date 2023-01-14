@@ -9,6 +9,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/r3labs/sse/v2"
+
+	"github.com/atjhoendz/notpushcation-service/internal/db"
+	"github.com/atjhoendz/notpushcation-service/internal/repository"
+
+	"github.com/atjhoendz/notpushcation-service/internal/delivery/httpsvc"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/atjhoendz/notpushcation-service/internal/config"
@@ -40,34 +47,61 @@ func run(cmd *cobra.Command, args []string) {
 
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	graphqlServer := echo.New()
+	db.InitializeCockroachConn()
 
+	httpServer := echo.New()
 	httpClient := connect.NewHTTPConnection(config.DefaultHTTPOptions())
 
 	notificationComposer := usecase.NewNotificationComposer()
 	onesignalClient := onesignal.NewClient(httpClient, config.OnesignalAppID())
 	messageProcessorUsecase := usecase.NewMessageProcessorUsecase(usecase.Composers{NotificationComposer: notificationComposer}, onesignalClient)
 
+	//sseBroker := model.NewSSEBroker()
+
+	onSubscribeCB := func(streamID string, sub *sse.Subscriber) {
+		log.Infof("client connected, streamID: %s, url: %s", streamID, sub.URL)
+	}
+	onUnsubscribeCB := func(streamID string, sub *sse.Subscriber) {
+		log.Infof("client disconnected, streamID: %s, url: %s", streamID, sub.URL)
+	}
+
+	//sseServer := sse.New()
+	sseServer := sse.NewWithCallback(onSubscribeCB, onUnsubscribeCB)
+	sseServer.AutoStream = true
+	sseServer.AutoReplay = false
+
+	threadRepository := repository.NewThreadRepository(db.CockroachDB)
+	threadUsecase := usecase.NewThreadUsecase(threadRepository, sseServer)
+
+	//sseBroker.Start()
+
 	go func() {
 		for {
 			select {
 			case <-sigCh:
-				gracefulShutdown(graphqlServer)
+				sseServer.Close()
+				gracefulShutdown(httpServer)
 				quitCh <- true
 			case e := <-errCh:
 				log.Error(e)
-				gracefulShutdown(graphqlServer)
+				gracefulShutdown(httpServer)
 				quitCh <- true
 			}
 		}
 	}()
 
 	go func() {
-		graphqlServer.Pre(middleware.AddTrailingSlash())
-		graphqlServer.Use(middleware.Logger())
-		graphqlServer.Use(middleware.Recover())
+		httpServer.Pre(middleware.AddTrailingSlash())
+		httpServer.Use(middleware.Logger())
+		httpServer.Use(middleware.Recover())
 
-		c := generated.Config{Resolvers: &graph.Resolver{MessageProcessorUsecase: messageProcessorUsecase}}
+		apiGroup := httpServer.Group("")
+		httpsvc.RouteService(apiGroup)
+
+		c := generated.Config{Resolvers: &graph.Resolver{
+			MessageProcessorUsecase: messageProcessorUsecase,
+			ThreadUsecase:           threadUsecase,
+		}}
 
 		graphqlHandler := handler.NewDefaultServer(
 			generated.NewExecutableSchema(c),
@@ -77,17 +111,27 @@ func run(cmd *cobra.Command, args []string) {
 			graphqlHandler.Use(extension.Introspection{})
 		}
 
-		gqlGroup := graphqlServer.Group("/query")
+		gqlGroup := httpServer.Group("/query")
 		gqlGroup.Any("/", func(c echo.Context) error {
 			graphqlHandler.ServeHTTP(c.Response(), c.Request())
 			return nil
 		})
 
+		sseGroup := httpServer.Group("/sse")
+		sseGroup.GET("/", func(c echo.Context) error {
+			c.Response().Header().Add("Access-Control-Allow-Origin", "*")
+			c.Response().Header().Add("Access-Control-Allow-Headers", "Content-Type")
+			sseServer.ServeHTTP(c.Response().Writer, c.Request())
+			return nil
+		})
+
 		// start graphql server
-		err := graphqlServer.Start(fmt.Sprintf(":%s", config.HTTPPort()))
+		//err := httpServer.Start(fmt.Sprintf(":%s", config.HTTPPort()))
+		err := httpServer.StartTLS(fmt.Sprintf(":%s", config.HTTPPort()), "cert.pem", "key.pem")
 		if err != nil && err != http.ErrServerClosed {
 			errCh <- err
 		}
+
 	}()
 
 	<-quitCh

@@ -1,3 +1,6 @@
+migrate_up=go run main.go migrate --direction=up --step=0
+migrate_down=go run main.go migrate --direction=down --step=0
+
 gqlgen:
 	cd internal/delivery/graphqlsvc/schema && \
 	go get github.com/99designs/gqlgen@v0.17.22 && \
@@ -50,4 +53,11 @@ test: lint test-only
 clean:
 	rm -v internal/model/mock/mock_*.go
 
-.PHONY: gqlgen check-cognitive-complexity lint
+migrate:
+	@if [ "$(DIRECTION)" = "" ] || [ "$(STEP)" = "" ]; then\
+    	$(migrate_up);\
+	else\
+		go run main.go migrate --direction=$(DIRECTION) --step=$(STEP);\
+    fi
+
+.PHONY: gqlgen check-cognitive-complexity lint migrate

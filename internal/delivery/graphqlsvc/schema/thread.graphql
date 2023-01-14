@@ -1,0 +1,8 @@
+input CreateThreadInput {
+    title: String!
+    content: String!
+}
+
+extend type Mutation {
+    createThread(input: CreateThreadInput!): Boolean!
+}
