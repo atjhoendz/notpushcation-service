@@ -20,7 +20,7 @@ func RouteService(group *echo.Group) {
 }
 
 func (s *service) initRoutes() {
-	s.group.GET("/check-http2/", func(c echo.Context) error {
+	s.group.GET("/info", func(c echo.Context) error {
 		req := c.Request()
 		format := `
 				<code>
