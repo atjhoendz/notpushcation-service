@@ -8,7 +8,6 @@ import "github.com/atjhoendz/notpushcation-service/internal/model"
 
 // Resolver :nodoc:
 type Resolver struct {
-	MessageProcessorUsecase model.MessageProcessorUsecase
-	ThreadUsecase           model.ThreadUsecase
-	LiveBlogPostUsecase     model.LiveBlogPostUsecase
+	ThreadUsecase       model.ThreadUsecase
+	LiveBlogPostUsecase model.LiveBlogPostUsecase
 }

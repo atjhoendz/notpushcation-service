@@ -32,18 +32,18 @@ ifdef test_run
 endif
 	$(eval test_command=$(TEST_BIN) ./... $(TEST_ARGS) -v --cover)
 
-internal/model/mock/mock_composer_usecase.go:
-	mockgen -destination=internal/model/mock/mock_composer_usecase.go -package=mock github.com/atjhoendz/notpushcation-service/internal/model ComposerUsecase
+internal/model/mock/mock_thread_repository.go:
+	mockgen -destination=internal/model/mock/mock_thread_repository.go -package=mock github.com/atjhoendz/notpushcation-service/internal/model ThreadRepository
 
-internal/model/mock/mock_message_processor_usecase.go:
-	mockgen -destination=internal/model/mock/mock_message_processor_usecase.go -package=mock github.com/atjhoendz/notpushcation-service/internal/model MessageProcessorUsecase
+internal/model/mock/mock_thread_usecase.go:
+	mockgen -destination=internal/model/mock/mock_thread_usecase.go -package=mock github.com/atjhoendz/notpushcation-service/internal/model ThreadUsecase
 
-internal/model/mock/mock_onesignal_client.go:
-	mockgen -destination=internal/model/mock/mock_onesignal_client.go -package=mock github.com/atjhoendz/notpushcation-service/internal/model OnesignalClient
+internal/model/mock/mock_live_blog_post_usecase.go:
+	mockgen -destination=internal/model/mock/mock_live_blog_post_usecase.go -package=mock github.com/atjhoendz/notpushcation-service/internal/model LiveBlogPostUsecase
 
-mockgen: internal/model/mock/mock_composer_usecase.go \
-	internal/model/mock/mock_message_processor_usecase.go \
-	internal/model/mock/mock_onesignal_client.go
+mockgen: internal/model/mock/mock_thread_repository.go \
+	internal/model/mock/mock_thread_usecase.go \
+	internal/model/mock/mock_live_blog_post_usecase.go
 
 test-only: check-gotest mockgen
 	SVC_DISABLE_CACHING=true $(test_command) -timeout 60s

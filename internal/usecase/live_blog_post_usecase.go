@@ -22,14 +22,17 @@ type liveBlogPostUsecase struct {
 	js        ferstream.JetStream
 }
 
+// NewLiveBlogPostUsecase :nodoc:
 func NewLiveBlogPostUsecase(sseServer *sse.Server) model.LiveBlogPostUsecase {
 	return &liveBlogPostUsecase{sseServer: sseServer}
 }
 
+// RegisterNATSJetStream :nodoc:
 func (l *liveBlogPostUsecase) RegisterNATSJetStream(js ferstream.JetStream) {
 	l.js = js
 }
 
+// InitStream :nodoc:
 func (l *liveBlogPostUsecase) InitStream() error {
 	_, err := l.js.AddStream(&nats.StreamConfig{
 		Name:     event.LiveBlogPostStreamName,
@@ -45,16 +48,13 @@ func (l *liveBlogPostUsecase) InitStream() error {
 	return err
 }
 
+// Create :nodoc:
 func (l *liveBlogPostUsecase) Create(input model.CreateLiveBlogPostInput) {
 	msg := ferstream.NatsEventMessage{
 		NatsEvent: &ferstream.NatsEvent{
 			ID: input.ThreadID,
 		},
 	}
-	//msg := ferstream.NewNatsEventMessage()
-	//msg.WithEvent(&ferstream.NatsEvent{
-	//	ID: input.ThreadID,
-	//}).WithBody(input)
 
 	msg.WithBody(input)
 
@@ -70,6 +70,7 @@ func (l *liveBlogPostUsecase) Create(input model.CreateLiveBlogPostInput) {
 	}
 }
 
+// HandleEvent :nodoc:
 func (l *liveBlogPostUsecase) HandleEvent(input model.CreateLiveBlogPostInput) {
 	msg := &sse.Event{
 		Data:  input.ToArrayByte(),

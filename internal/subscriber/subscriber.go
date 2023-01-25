@@ -18,6 +18,7 @@ const (
 type (
 	caller string
 
+	// Subscriber :nodoc:
 	Subscriber interface {
 		RegisterNATSJetStream(js ferstream.JetStream)
 		SubscribeJetStreamEvent() error
@@ -29,14 +30,17 @@ type (
 	}
 )
 
+// NewSubscriber :nodoc:
 func NewSubscriber(liveBlogPostUsecase model.LiveBlogPostUsecase) Subscriber {
 	return &subscriberImpl{liveBlogPostUsecase: liveBlogPostUsecase}
 }
 
+// RegisterNATSJetStream :nodoc:
 func (s *subscriberImpl) RegisterNATSJetStream(js ferstream.JetStream) {
 	s.js = js
 }
 
+// SubscribeJetStreamEvent :nodoc:
 func (s *subscriberImpl) SubscribeJetStreamEvent() error {
 	eventHandler := createJetStreamEventHandler(event.LiveBlogPostStreamName, func(ctx context.Context, msg *ferstream.NatsEventMessage) error {
 		switch msg.NatsEvent.GetSubject() {

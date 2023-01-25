@@ -11,13 +11,13 @@ import (
 	"github.com/atjhoendz/notpushcation-service/internal/model"
 )
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-
 // CreateLiveBlogPosts is the resolver for the createLiveBlogPosts field.
 func (r *mutationResolver) CreateLiveBlogPosts(ctx context.Context, input model.CreateLiveBlogPostInput) (bool, error) {
 	r.LiveBlogPostUsecase.Create(input)
 	return true, nil
 }
+
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
+type mutationResolver struct{ *Resolver }

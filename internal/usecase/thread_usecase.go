@@ -13,14 +13,15 @@ import (
 
 type threadUsecase struct {
 	threadRepo model.ThreadRepository
-	//sseBroker  *model.SSEBroker
-	sseServer *sse.Server
+	sseServer  *sse.Server
 }
 
+// NewThreadUsecase :nodoc:
 func NewThreadUsecase(threadRepo model.ThreadRepository, sseServer *sse.Server) model.ThreadUsecase {
 	return &threadUsecase{threadRepo: threadRepo, sseServer: sseServer}
 }
 
+// Create :nodoc:
 func (u threadUsecase) Create(ctx context.Context, input model.CreateThreadInput) (*model.Thread, error) {
 	logger := log.WithFields(log.Fields{
 		"ctx":   utils.DumpIncomingContext(ctx),
@@ -38,13 +39,6 @@ func (u threadUsecase) Create(ctx context.Context, input model.CreateThreadInput
 		return nil, err
 	}
 
-	//msg := &model.SSEMessage{
-	//	Event: model.Update,
-	//	Data:  res.ToJSONString(),
-	//}
-	//
-	//u.sseBroker.BroadcastMessage(msg)
-
 	msg := &sse.Event{
 		Data:  res.ToArrayByte(),
 		Event: []byte(model.Update),
@@ -53,9 +47,4 @@ func (u threadUsecase) Create(ctx context.Context, input model.CreateThreadInput
 	u.sseServer.Publish("thread", msg)
 
 	return res, nil
-}
-
-func (u threadUsecase) FindAll(ctx context.Context) (threads []*model.Thread, err error) {
-	//TODO implement me
-	panic("implement me")
 }

@@ -26,9 +26,7 @@ import (
 	"github.com/atjhoendz/notpushcation-service/internal/config"
 	"github.com/atjhoendz/notpushcation-service/internal/delivery/graphqlsvc/graph"
 	"github.com/atjhoendz/notpushcation-service/internal/delivery/graphqlsvc/graph/generated"
-	"github.com/atjhoendz/notpushcation-service/internal/onesignal"
 	"github.com/atjhoendz/notpushcation-service/internal/usecase"
-	"github.com/kumparan/go-connect"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	log "github.com/sirupsen/logrus"
@@ -55,13 +53,6 @@ func run(cmd *cobra.Command, args []string) {
 	db.InitializeCockroachConn()
 
 	httpServer := echo.New()
-	httpClient := connect.NewHTTPConnection(config.DefaultHTTPOptions())
-
-	notificationComposer := usecase.NewNotificationComposer()
-	onesignalClient := onesignal.NewClient(httpClient, config.OnesignalAppID())
-	messageProcessorUsecase := usecase.NewMessageProcessorUsecase(usecase.Composers{NotificationComposer: notificationComposer}, onesignalClient)
-
-	//sseBroker := model.NewSSEBroker()
 
 	onSubscribeCB := func(streamID string, sub *sse.Subscriber) {
 		log.Infof("client connected, streamID: %s, url: %s", streamID, sub.URL)
@@ -123,9 +114,8 @@ func run(cmd *cobra.Command, args []string) {
 		httpsvc.RouteService(apiGroup)
 
 		c := generated.Config{Resolvers: &graph.Resolver{
-			MessageProcessorUsecase: messageProcessorUsecase,
-			ThreadUsecase:           threadUsecase,
-			LiveBlogPostUsecase:     liveBlogPostUsecase,
+			ThreadUsecase:       threadUsecase,
+			LiveBlogPostUsecase: liveBlogPostUsecase,
 		}}
 
 		graphqlHandler := handler.NewDefaultServer(
