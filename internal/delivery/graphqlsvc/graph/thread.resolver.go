@@ -7,10 +7,9 @@ package graph
 import (
 	"context"
 
+	"github.com/atjhoendz/notpushcation-service/internal/model"
 	"github.com/kumparan/go-utils"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/atjhoendz/notpushcation-service/internal/model"
 )
 
 // CreateThread is the resolver for the createThread field.

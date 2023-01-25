@@ -124,6 +124,59 @@ func DatabaseDSN() string {
 		CockroachSSLMode())
 }
 
+// NATSJSHost :nodoc:
+func NATSJSHost() string {
+	return viper.GetString("nats_js.host")
+}
+
+// NATSJSRetryOnFailedConnect :nodoc:
+func NATSJSRetryOnFailedConnect() bool {
+	if !viper.IsSet("nats_js.retry_on_failed_connect") {
+		return DefaultNATSJSRetryOnFailedConnect
+	}
+	return viper.GetBool("nats_js.retry_on_failed_connect")
+}
+
+// NATSJSMaxReconnect :nodoc:
+func NATSJSMaxReconnect() int {
+	return utils.ValueOrDefault[int](viper.GetInt("nats_js.max_reconnect"), DefaultNATSJSMaxReconnect)
+}
+
+// NATSJSReconnectWait :nodoc:
+func NATSJSReconnectWait() time.Duration {
+	return utils.ParseDurationWithDefault(viper.GetString("nats_js.reconnect_wait"), DefaultNATSJSReconnectWait)
+}
+
+// NATSJSRetryAttempts :nodoc:
+func NATSJSRetryAttempts() int {
+	return utils.ValueOrDefault[int](viper.GetInt("nats_js.retry_attempts"), DefaultNATSJSRetryAttempts)
+}
+
+// NATSJSRetryInterval :nodoc:
+func NATSJSRetryInterval() time.Duration {
+	return utils.ParseDurationWithDefault(viper.GetString("nats_js.retry_interval"), DefaultNATSJSRetryInterval)
+}
+
+// NATSJSSubscribeRetryAttempts :nodoc:
+func NATSJSSubscribeRetryAttempts() int {
+	return utils.ValueOrDefault[int](viper.GetInt("nats_js.subscribe_retry_attempts"), DefaultNATSJSSubscribeRetryAttempts)
+}
+
+// NATSJSSubscribeRetryInterval :nodoc:
+func NATSJSSubscribeRetryInterval() time.Duration {
+	return utils.ParseDurationWithDefault(viper.GetString("nats_js.subscribe_retry_interval"), DefaultNATSJSSubscribeRetryInterval)
+}
+
+// NATSJSStreamMaxAge :nodoc:
+func NATSJSStreamMaxAge() time.Duration {
+	return utils.ParseDurationWithDefault(viper.GetString("nats_js.stream_max_age"), DefaultNATSJSStreamMaxAge)
+}
+
+// NATSJSStreamMaxMessages :nodoc:
+func NATSJSStreamMaxMessages() int64 {
+	return utils.ValueOrDefault[int64](viper.GetInt64("nats_js.stream_max_messages"), DefaultNATSJSStreamMaxMessages)
+}
+
 // GetConf :nodoc:
 func GetConf() {
 	viper.AddConfigPath(".")

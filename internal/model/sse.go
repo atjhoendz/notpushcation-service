@@ -26,7 +26,8 @@ type (
 )
 
 const (
-	Update EventType = "UPDATE"
+	Update       EventType = "UPDATE"
+	LiveBlogPost EventType = "LIVE_BLOG_POST"
 )
 
 func NewSSEBroker() *SSEBroker {

@@ -9,6 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nats-io/nats.go"
+
+	"github.com/atjhoendz/notpushcation-service/internal/subscriber"
+	"github.com/kumparan/ferstream"
+
 	"github.com/r3labs/sse/v2"
 
 	"github.com/atjhoendz/notpushcation-service/internal/db"
@@ -72,8 +77,27 @@ func run(cmd *cobra.Command, args []string) {
 
 	threadRepository := repository.NewThreadRepository(db.CockroachDB)
 	threadUsecase := usecase.NewThreadUsecase(threadRepository, sseServer)
+	liveBlogPostUsecase := usecase.NewLiveBlogPostUsecase(sseServer)
 
-	//sseBroker.Start()
+	natsOpts := []nats.Option{
+		nats.RetryOnFailedConnect(config.NATSJSRetryOnFailedConnect()),
+		nats.MaxReconnects(config.NATSJSMaxReconnect()),
+		nats.ReconnectWait(config.NATSJSReconnectWait()),
+	}
+
+	subs := subscriber.NewSubscriber(liveBlogPostUsecase)
+	js, err := ferstream.NewNATSConnection(
+		config.NATSJSHost(),
+		[]ferstream.JetStreamRegistrar{
+			liveBlogPostUsecase,
+			subs,
+		},
+		natsOpts...,
+	)
+	if err != nil {
+		log.Fatal("nats js error: ", err)
+	}
+	defer ferstream.SafeClose(js)
 
 	go func() {
 		for {
@@ -101,6 +125,7 @@ func run(cmd *cobra.Command, args []string) {
 		c := generated.Config{Resolvers: &graph.Resolver{
 			MessageProcessorUsecase: messageProcessorUsecase,
 			ThreadUsecase:           threadUsecase,
+			LiveBlogPostUsecase:     liveBlogPostUsecase,
 		}}
 
 		graphqlHandler := handler.NewDefaultServer(

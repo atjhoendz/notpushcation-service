@@ -10,4 +10,5 @@ import "github.com/atjhoendz/notpushcation-service/internal/model"
 type Resolver struct {
 	MessageProcessorUsecase model.MessageProcessorUsecase
 	ThreadUsecase           model.ThreadUsecase
+	LiveBlogPostUsecase     model.LiveBlogPostUsecase
 }

@@ -45,6 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
+		CreateLiveBlogPosts       func(childComplexity int, input model.CreateLiveBlogPostInput) int
 		CreateThread              func(childComplexity int, input model.CreateThreadInput) int
 		PushNotificationBySegment func(childComplexity int, input model.PushNotificationInput) int
 	}
@@ -59,6 +60,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	CreateLiveBlogPosts(ctx context.Context, input model.CreateLiveBlogPostInput) (bool, error)
 	PushNotificationBySegment(ctx context.Context, input model.PushNotificationInput) (bool, error)
 	CreateThread(ctx context.Context, input model.CreateThreadInput) (bool, error)
 }
@@ -77,6 +79,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.createLiveBlogPosts":
+		if e.complexity.Mutation.CreateLiveBlogPosts == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createLiveBlogPosts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateLiveBlogPosts(childComplexity, args["input"].(model.CreateLiveBlogPostInput)), true
 
 	case "Mutation.createThread":
 		if e.complexity.Mutation.CreateThread == nil {
@@ -124,6 +138,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateLiveBlogPostInput,
 		ec.unmarshalInputCreateThreadInput,
 		ec.unmarshalInputPushNotificationInput,
 	)
@@ -186,6 +201,15 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../../schema/live_blog_post.graphql", Input: `input CreateLiveBlogPostInput {
+    threadID: Int!
+    title: String!
+}
+
+extend type Mutation {
+    createLiveBlogPosts(input: CreateLiveBlogPostInput!): Boolean!
+}
+`, BuiltIn: false},
 	{Name: "../../schema/notification.graphql", Input: `enum OnesignalSegment {
     SUBSCRIBED_USERS
     ACTIVE_USERS
@@ -235,6 +259,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createLiveBlogPosts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CreateLiveBlogPostInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateLiveBlogPostInput2githubᚗcomᚋatjhoendzᚋnotpushcationᚑserviceᚋinternalᚋmodelᚐCreateLiveBlogPostInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createThread_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -318,6 +357,61 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Mutation_createLiveBlogPosts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createLiveBlogPosts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateLiveBlogPosts(rctx, fc.Args["input"].(model.CreateLiveBlogPostInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createLiveBlogPosts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createLiveBlogPosts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Mutation_pushNotificationBySegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_pushNotificationBySegment(ctx, field)
@@ -2420,6 +2514,42 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateLiveBlogPostInput(ctx context.Context, obj interface{}) (model.CreateLiveBlogPostInput, error) {
+	var it model.CreateLiveBlogPostInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"threadID", "title"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "threadID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threadID"))
+			it.ThreadID, err = ec.unmarshalNInt2int64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateThreadInput(ctx context.Context, obj interface{}) (model.CreateThreadInput, error) {
 	var it model.CreateThreadInput
 	asMap := map[string]interface{}{}
@@ -2527,6 +2657,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createLiveBlogPosts":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createLiveBlogPosts(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pushNotificationBySegment":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -2979,9 +3118,29 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateLiveBlogPostInput2githubᚗcomᚋatjhoendzᚋnotpushcationᚑserviceᚋinternalᚋmodelᚐCreateLiveBlogPostInput(ctx context.Context, v interface{}) (model.CreateLiveBlogPostInput, error) {
+	res, err := ec.unmarshalInputCreateLiveBlogPostInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateThreadInput2githubᚗcomᚋatjhoendzᚋnotpushcationᚑserviceᚋinternalᚋmodelᚐCreateThreadInput(ctx context.Context, v interface{}) (model.CreateThreadInput, error) {
 	res, err := ec.unmarshalInputCreateThreadInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNInt2int64(ctx context.Context, v interface{}) (int64, error) {
+	res, err := graphql.UnmarshalInt64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+	res := graphql.MarshalInt64(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNOnesignalSegment2githubᚗcomᚋatjhoendzᚋnotpushcationᚑserviceᚋinternalᚋmodelᚐOnesignalSegment(ctx context.Context, v interface{}) (model.OnesignalSegment, error) {

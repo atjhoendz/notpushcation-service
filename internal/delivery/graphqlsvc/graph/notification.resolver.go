@@ -7,7 +7,6 @@ package graph
 import (
 	"context"
 
-	"github.com/atjhoendz/notpushcation-service/internal/delivery/graphqlsvc/graph/generated"
 	"github.com/atjhoendz/notpushcation-service/internal/model"
 	"github.com/kumparan/go-utils"
 	log "github.com/sirupsen/logrus"
@@ -25,8 +24,3 @@ func (r *mutationResolver) PushNotificationBySegment(ctx context.Context, input 
 	}
 	return true, nil
 }
-
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-type mutationResolver struct{ *Resolver }

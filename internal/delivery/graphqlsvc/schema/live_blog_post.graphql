@@ -1,0 +1,8 @@
+input CreateLiveBlogPostInput {
+    threadID: Int!
+    title: String!
+}
+
+extend type Mutation {
+    createLiveBlogPosts(input: CreateLiveBlogPostInput!): Boolean!
+}
