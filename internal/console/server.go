@@ -9,6 +9,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kumparan/go-connect"
+	connectMiddleware "github.com/kumparan/go-connect/middleware"
+	"github.com/ulule/limiter/v3"
+
 	"github.com/nats-io/nats.go"
 
 	"github.com/atjhoendz/notpushcation-service/internal/subscriber"
@@ -85,9 +89,7 @@ func run(cmd *cobra.Command, args []string) {
 		},
 		natsOpts...,
 	)
-	if err != nil {
-		log.Fatal("nats js error: ", err)
-	}
+	continueOrFatal(err)
 	defer ferstream.SafeClose(js)
 
 	go func() {
@@ -104,6 +106,16 @@ func run(cmd *cobra.Command, args []string) {
 			}
 		}
 	}()
+
+	redisOpts := &connect.RedisConnectionPoolOptions{
+		DialTimeout:     config.RedisDialTimeout(),
+		ReadTimeout:     config.RedisReadTimeout(),
+		WriteTimeout:    config.RedisWriteTimeout(),
+		IdleCount:       config.RedisMaxIdleConn(),
+		PoolSize:        config.RedisMaxActiveConn(),
+		IdleTimeout:     config.RedisIdleTimeout(),
+		MaxConnLifetime: config.RedisMaxConnLifetime(),
+	}
 
 	go func() {
 		httpServer.Pre(middleware.AddTrailingSlash())
@@ -133,6 +145,18 @@ func run(cmd *cobra.Command, args []string) {
 		})
 
 		sseGroup := httpServer.Group("/sse")
+		if config.EnableRateLimiter() {
+			redisClient, err := connect.NewGoRedisConnectionPool(config.RedisRateLimiterHost(), redisOpts)
+			continueOrFatal(err)
+
+			sseIPRateLimiter, err := connectMiddleware.NewRedisIPRateLimiter(redisClient, limiter.Rate{
+				Period: config.RateLimiterPeriod(),
+				Limit:  config.RateLimiterRequestLimit(),
+			}, config.RateLimiterExcludeIPs())
+			continueOrFatal(err)
+
+			sseGroup.Use(sseIPRateLimiter.Limit())
+		}
 		sseGroup.GET("/", func(c echo.Context) error {
 			c.Response().Header().Add("Access-Control-Allow-Origin", "*")
 			c.Response().Header().Add("Access-Control-Allow-Headers", "Content-Type")
@@ -146,7 +170,6 @@ func run(cmd *cobra.Command, args []string) {
 		if err != nil && err != http.ErrServerClosed {
 			errCh <- err
 		}
-
 	}()
 
 	<-quitCh
@@ -160,5 +183,11 @@ func gracefulShutdown(graphqlSvr *echo.Echo) {
 		if err := graphqlSvr.Shutdown(ctx); err != nil {
 			graphqlSvr.Logger.Fatal(err)
 		}
+	}
+}
+
+func continueOrFatal(err error) {
+	if err != nil {
+		log.Fatal()
 	}
 }

@@ -25,3 +25,18 @@ nats_js:
   subscribe_retry_interval: "2s"
   stream_max_age: "24h"
   stream_max_messages: "100000"
+redis:
+  dial_timeout: 5
+  write_timeout: 2
+  read_timeout: 2
+  max_idle_conn: 20
+  max_active_conn: 50
+  cache_host: "redis://localhost:6379/0"
+  rate_limiter_host: "redis://localhost:6379/1"
+enable_rate_limiter: "true"
+rate_limiter:
+  period: "1s"
+  request_limit: "20"
+  excluded_ips:
+    - 127.0.0.1
+    - 127.0.0.2

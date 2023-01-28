@@ -177,6 +177,81 @@ func NATSJSStreamMaxMessages() int64 {
 	return utils.ValueOrDefault[int64](viper.GetInt64("nats_js.stream_max_messages"), DefaultNATSJSStreamMaxMessages)
 }
 
+// RedisDialTimeout :nodoc:
+func RedisDialTimeout() time.Duration {
+	if viper.GetInt("redis.dial_timeout") > 0 {
+		return time.Duration(viper.GetInt("redis.dial_timeout")) * time.Second
+	}
+	return 5 * time.Second
+}
+
+// RedisWriteTimeout :nodoc:
+func RedisWriteTimeout() time.Duration {
+	if viper.GetInt("redis.write_timeout") > 0 {
+		return time.Duration(viper.GetInt("redis.write_timeout")) * time.Second
+	}
+	return 2 * time.Second
+}
+
+// RedisReadTimeout :nodoc:
+func RedisReadTimeout() time.Duration {
+	if viper.GetInt("redis.read_timeout") > 0 {
+		return time.Duration(viper.GetInt("redis.read_timeout")) * time.Second
+	}
+	return 2 * time.Second
+}
+
+// RedisMaxIdleConn :nodoc:
+func RedisMaxIdleConn() int {
+	if viper.GetInt("redis.max_idle_conn") > 0 {
+		return viper.GetInt("redis.max_idle_conn")
+	}
+	return 20
+}
+
+// RedisMaxActiveConn :nodoc:
+func RedisMaxActiveConn() int {
+	if viper.GetInt("redis.max_active_conn") > 0 {
+		return viper.GetInt("redis.max_active_conn")
+	}
+	return 50
+}
+
+// RedisIdleTimeout :nodoc:
+func RedisIdleTimeout() time.Duration {
+	return utils.ValueOrDefault[time.Duration](viper.GetDuration("redis.idle_timeout"), DefaultRedisIdleTimeout)
+}
+
+// RedisMaxConnLifetime :nodoc:
+func RedisMaxConnLifetime() time.Duration {
+	return utils.ValueOrDefault[time.Duration](viper.GetDuration("redis.max_conn_lifetime"), DefaultRedisMaxConnLifetime)
+}
+
+// RedisRateLimiterHost :nodoc:
+func RedisRateLimiterHost() string {
+	return viper.GetString("redis.rate_limiter_host")
+}
+
+// EnableRateLimiter :nodoc:
+func EnableRateLimiter() bool {
+	return viper.GetBool("enable_rate_limiter")
+}
+
+// RateLimiterPeriod :nodoc:
+func RateLimiterPeriod() time.Duration {
+	return utils.ValueOrDefault[time.Duration](viper.GetDuration("rate_limiter.period"), DefaultRateLimiterPeriod)
+}
+
+// RateLimiterRequestLimit :nodoc:
+func RateLimiterRequestLimit() int64 {
+	return utils.ValueOrDefault[int64](viper.GetInt64("rate_limiter.request_limit"), DefaultRateLimiterRequestLimit)
+}
+
+// RateLimiterExcludeIPs :nodoc:
+func RateLimiterExcludeIPs() []string {
+	return viper.GetStringSlice("rate_limiter.exclude_ips")
+}
+
 // GetConf :nodoc:
 func GetConf() {
 	viper.AddConfigPath(".")

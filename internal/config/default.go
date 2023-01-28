@@ -14,25 +14,20 @@ const (
 	DefaultCockroachPingInterval    = 1 * time.Second
 	DefaultCockroachRetryAttempts   = 3
 
-	NATSDurableID = "sse-service-durable"
-	// DefaultNATSJSRetryOnFailedConnect :nodoc:
-	DefaultNATSJSRetryOnFailedConnect = true
-	// DefaultNATSJSMaxReconnect :nodoc:
-	DefaultNATSJSMaxReconnect = -1
-	// DefaultNATSJSReconnectWait :nodoc:
-	DefaultNATSJSReconnectWait = 1 * time.Second
-	// DefaultNATSJSRetryAttempts :nodoc:
-	DefaultNATSJSRetryAttempts = 3
-	// DefaultNATSJSRetryInterval :nodoc:
-	DefaultNATSJSRetryInterval = 2 * time.Second
-	// DefaultNATSJSSubscribeRetryAttempts :nodoc:
+	NATSDurableID                       = "sse-service-durable"
+	DefaultNATSJSRetryOnFailedConnect   = true
+	DefaultNATSJSMaxReconnect           = -1
+	DefaultNATSJSReconnectWait          = 1 * time.Second
+	DefaultNATSJSRetryAttempts          = 3
+	DefaultNATSJSRetryInterval          = 2 * time.Second
 	DefaultNATSJSSubscribeRetryAttempts = 3
-	// DefaultNATSJSSubscribeRetryInterval :nodoc:
 	DefaultNATSJSSubscribeRetryInterval = 2 * time.Second
-	// DefaultNATSJSStreamMaxAge :nodoc:
-	DefaultNATSJSStreamMaxAge = 1 * 24 * time.Hour
-	// DefaultNATSJSDeliveryTimeInMinute :nodoc:
-	DefaultNATSJSDeliveryTimeInMinute = -30
-	// DefaultNATSJSStreamMaxMessages :nodoc:
-	DefaultNATSJSStreamMaxMessages = 100000
+	DefaultNATSJSStreamMaxAge           = 1 * 24 * time.Hour
+	DefaultNATSJSStreamMaxMessages      = 100000
+
+	DefaultRateLimiterPeriod       = time.Second
+	DefaultRateLimiterRequestLimit = 20
+
+	DefaultRedisIdleTimeout     = 240 * time.Second
+	DefaultRedisMaxConnLifetime = time.Minute
 )
