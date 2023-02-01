@@ -77,5 +77,5 @@ func (l *liveBlogPostUsecase) HandleEvent(input model.CreateLiveBlogPostInput) {
 		Event: []byte(model.LiveBlogPost),
 	}
 
-	l.sseServer.Publish(fmt.Sprintf("live-blog-post-thread-id-%d", input.ThreadID), msg)
+	l.sseServer.Publish(fmt.Sprintf(model.StreamIDLiveBlogPostByThreadIDTempl, input.ThreadID), msg)
 }

@@ -30,4 +30,6 @@ func (c CreateLiveBlogPostInput) ToArrayByte() []byte {
 const (
 	// LiveBlogPost :nodoc:
 	LiveBlogPost SSEEvent = "LIVE_BLOG_POST"
+	// StreamIDLiveBlogPostByThreadIDTempl :nodoc:
+	StreamIDLiveBlogPostByThreadIDTempl = "live-blog-post-thread-id-%d"
 )
