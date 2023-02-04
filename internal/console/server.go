@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -172,6 +173,16 @@ func run(cmd *cobra.Command, args []string) {
 		}
 	}()
 
+	tickerChannel := time.NewTicker(5 * time.Second)
+	go func() {
+		for {
+			select {
+			case <-tickerChannel.C:
+				printMemUsage()
+			}
+		}
+	}()
+
 	<-quitCh
 	log.Info("exiting")
 }
@@ -190,4 +201,20 @@ func continueOrFatal(err error) {
 	if err != nil {
 		log.Fatal()
 	}
+}
+
+func printMemUsage() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
+	fmt.Printf("\tMAlloc = %v MiB", bToMb(m.Mallocs))
+	fmt.Printf("\tFrees = %v MiB", bToMb(m.Frees))
+	fmt.Printf("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
+	fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
+	fmt.Printf("\tNumGC = %v\n", m.NumGC)
+}
+
+func bToMb(b uint64) uint64 {
+	return b / 1024 / 1024
 }
